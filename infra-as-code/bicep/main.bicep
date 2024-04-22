@@ -207,15 +207,3 @@ module firewallModule 'azurefirewall.bicep' = {
     logAnalyticsWorkspaceName: logWorkspace.name
   }
 }
-
-
-// Deploy Routes for the Azure Firewall
-
-module routesModule 'routes.bicep' = {
-  name: 'routesDeploy'
-  params: {
-    location: location
-    azfwIP: firewallModule.outputs.azfwPIPAddress
-    fwPrivateIP: firewallModule.outputs.fwPrivateIP
-  }
-}

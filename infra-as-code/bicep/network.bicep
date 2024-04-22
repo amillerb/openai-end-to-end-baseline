@@ -23,10 +23,158 @@ var bastionSubnetPrefix = '10.0.2.64/26'
 var jumpboxSubnetPrefix = '10.0.2.128/28'
 var trainingSubnetPrefix = '10.0.3.0/24'
 var scoringSubnetPrefix = '10.0.4.0/24'
+var azureFirewallSubnetPrefix = '10.1.1.0/26'
 
 var enableDdosProtection = !developmentEnvironment
 
 // ---- Networking resources ----
+
+var rtDeploymentAppGWName = 'udr-appGatewaySubnet-deployment'
+var rtDeploymentAppServicesName = 'udr-appServicesSubnet-deployment'
+var rtDeploymentJumpboxName = 'udr-jumpboxSubnet-deployment'
+var rtDeploymentPEName = 'udr-privateEndpointsSubnet-deployment'
+var rtDeploymentTrainingName = 'udr-snet-training-deployment'
+var rtDeploymentAgentsName = 'udr-snet-agents-deployment'
+var rtDeploymentScoringName = 'udr-snet-scoring-deployment'
+
+
+// Route Tables
+var rtAppGWName = 'udr-appGatewaySubnet'
+var rtAppServicesName = 'udr-appServicesSubnet'
+var rtJumpboxName = 'udr-jumpboxSubnet'
+var rtPEName = 'udr-privateEndpointsSubnet'
+var rtTrainingName = 'udr-snet-training'
+var rtAgentsName = 'udr-snet-agents'
+var rtScoringName = 'udr-snet-scoring'
+
+var fwPrivateIP = '10.1.1.4'
+
+module rtAppGW 'br/public:avm/res/network/route-table:0.2.1' = {
+  name: rtDeploymentAppGWName
+  params: {
+    name: rtAppGWName
+    location: location
+    routes: [
+      {
+        name: 'ib-frontend-app-aoaizt'
+        properties: {
+          addressPrefix: '10.1.2.0/27'
+          nextHopIpAddress: fwPrivateIP
+          nextHopType: 'VirtualAppliance'
+        }
+      }
+    ]
+  }
+}
+
+module rtAppServices 'br/public:avm/res/network/route-table:0.2.1' = {
+  name: rtDeploymentAppServicesName
+  params: {
+    name: rtAppServicesName
+    location: location
+    routes: [
+      {
+        name: 'default'
+        properties: {
+          addressPrefix: '0.0.0.0/0'
+          nextHopIpAddress: fwPrivateIP
+          nextHopType: 'VirtualAppliance'
+        }
+      }
+    ]
+  }
+}
+
+module rtJumpbox 'br/public:avm/res/network/route-table:0.2.1' = {
+  name: rtDeploymentJumpboxName
+  params: {
+    name: rtJumpboxName
+    location: location
+    routes: [
+      {
+        name: 'default'
+        properties: {
+          addressPrefix: '0.0.0.0/0'
+          nextHopIpAddress: fwPrivateIP
+          nextHopType: 'VirtualAppliance'
+        }
+      }
+    ]
+  }
+}
+
+module rtPE 'br/public:avm/res/network/route-table:0.2.1' = {
+  name: rtDeploymentPEName
+  params: {
+    name: rtPEName
+    location: location
+    routes: [
+      {
+        name: 'default'
+        properties: {
+          addressPrefix: '0.0.0.0/0'
+          nextHopIpAddress: fwPrivateIP
+          nextHopType: 'VirtualAppliance'
+        }
+      }
+    ]
+  }
+}
+
+module rtTraining 'br/public:avm/res/network/route-table:0.2.1' = {
+  name: rtDeploymentTrainingName
+  params: {
+    name: rtTrainingName
+    location: location
+    routes: [
+      {
+        name: 'default'
+        properties: {
+          addressPrefix: '0.0.0.0/0'
+          nextHopIpAddress: fwPrivateIP
+          nextHopType: 'VirtualAppliance'
+        }
+      }
+    ]
+  }
+}
+
+module rtAgents 'br/public:avm/res/network/route-table:0.2.1' = {
+  name: rtDeploymentAgentsName
+  params: {
+    name: rtAgentsName
+    location: location
+    routes: [
+      {
+        name: 'default'
+        properties: {
+          addressPrefix: '0.0.0.0/0'
+          nextHopIpAddress: fwPrivateIP
+          nextHopType: 'VirtualAppliance'
+        }
+      }
+    ]
+  }
+}
+
+
+module rtScoring 'br/public:avm/res/network/route-table:0.2.1' = {
+  name: rtDeploymentScoringName
+  params: {
+    name: rtScoringName
+    location: location
+    routes: [
+      {
+        name: 'default'
+        properties: {
+          addressPrefix: '0.0.0.0/0'
+          nextHopIpAddress: fwPrivateIP
+          nextHopType: 'VirtualAppliance'
+        }
+      }
+    ]
+  }
+}
 
 // DDoS Protection Plan
 resource ddosProtectionPlan 'Microsoft.Network/ddosProtectionPlans@2022-11-01' = if (enableDdosProtection) {
@@ -64,6 +212,9 @@ resource vnet 'Microsoft.Network/virtualNetworks@2022-11-01' = {
               }
             }
           ]
+          routeTable: {
+            id: rtAppServices.outputs.resourceId
+          }
         }
       }
       {
@@ -76,6 +227,9 @@ resource vnet 'Microsoft.Network/virtualNetworks@2022-11-01' = {
           }
           privateEndpointNetworkPolicies: 'Enabled'
           privateLinkServiceNetworkPolicies: 'Enabled'
+          routeTable: {
+            id: rtAppGW.outputs.resourceId
+          }
         }
       }
       {
@@ -86,6 +240,9 @@ resource vnet 'Microsoft.Network/virtualNetworks@2022-11-01' = {
           networkSecurityGroup: {
             id: privateEndpointsSubnetNsg.id
           }
+          routeTable: {
+            id: rtPE.outputs.resourceId
+          }
         }
       }
       {
@@ -95,6 +252,9 @@ resource vnet 'Microsoft.Network/virtualNetworks@2022-11-01' = {
           addressPrefix: agentsSubnetPrefix
           networkSecurityGroup: {
             id: agentsSubnetNsg.id
+          }
+          routeTable: {
+            id: rtAgents.outputs.resourceId
           }
         }
       }
@@ -116,6 +276,9 @@ resource vnet 'Microsoft.Network/virtualNetworks@2022-11-01' = {
           networkSecurityGroup: {
             id: jumpboxSubnetNsg.id
           }
+          routeTable: {
+            id: rtJumpbox.outputs.resourceId
+          }
         }
       }
       {
@@ -126,6 +289,9 @@ resource vnet 'Microsoft.Network/virtualNetworks@2022-11-01' = {
           networkSecurityGroup: {
             id: trainingSubnetNsg.id
           }
+          routeTable: {
+            id: rtTraining.outputs.resourceId
+          }
         }
       }
       {
@@ -135,6 +301,9 @@ resource vnet 'Microsoft.Network/virtualNetworks@2022-11-01' = {
           addressPrefix: scoringSubnetPrefix
           networkSecurityGroup: {
             id: scoringSubnetNsg.id
+          }
+          routeTable: {
+            id: rtScoring.outputs.resourceId
           }
         }
       }
@@ -187,7 +356,7 @@ resource appGatewaySubnetNsg 'Microsoft.Network/networkSecurityGroups@2022-11-01
           protocol: '*'
           sourcePortRange: '*'
           destinationPortRange: '65200-65535'
-          sourceAddressPrefix: '*'
+          sourceAddressPrefix: 'GatewayManager'
           destinationAddressPrefix: '*'
           access: 'Allow'
           priority: 100
@@ -208,61 +377,6 @@ resource appGatewaySubnetNsg 'Microsoft.Network/networkSecurityGroups@2022-11-01
           direction: 'Inbound'
         }
       }
-      {
-        name: 'AppGw.In.Allow.LoadBalancer'
-        properties: {
-          description: 'Allow inbound traffic from azure load balancer'
-          protocol: '*'
-          sourcePortRange: '*'
-          destinationPortRange: '*'
-          sourceAddressPrefix: 'AzureLoadBalancer'
-          destinationAddressPrefix: '*'
-          access: 'Allow'
-          priority: 120
-          direction: 'Inbound'
-        }
-      }      
-      {
-        name: 'DenyAllInBound'
-        properties: {
-          protocol: '*'
-          sourcePortRange: '*'
-          sourceAddressPrefix: '*'
-          destinationPortRange: '*'
-          destinationAddressPrefix: '*'
-          access: 'Deny'
-          priority: 1000
-          direction: 'Inbound'
-        }
-      }      
-      {
-        name: 'AppGw.Out.Allow.PrivateEndpoints'
-        properties: {
-          description: 'Allow outbound traffic from the App Gateway subnet to the Private Endpoints subnet.'
-          protocol: '*'
-          sourcePortRange: '*'
-          destinationPortRange: '*'
-          sourceAddressPrefix: appGatewaySubnetPrefix
-          destinationAddressPrefix: privateEndpointsSubnetPrefix
-          access: 'Allow'
-          priority: 100
-          direction: 'Outbound'
-        }
-      }
-      {
-        name: 'AppPlan.Out.Allow.AzureMonitor'
-        properties: {
-          description: 'Allow outbound traffic from the App Gateway subnet to Azure Monitor'
-          protocol: '*'
-          sourcePortRange: '*'
-          destinationPortRange: '*'
-          sourceAddressPrefix: appGatewaySubnetPrefix
-          destinationAddressPrefix: 'AzureMonitor'
-          access: 'Allow'
-          priority: 110
-          direction: 'Outbound'
-        }
-      }
     ]
   }
 }
@@ -273,6 +387,20 @@ resource appServiceSubnetNsg 'Microsoft.Network/networkSecurityGroups@2022-11-01
   location: location
   properties: {
     securityRules: [
+      {
+        name: 'DenyVnetInBound'
+        properties: {
+          description: 'Deny inbound traffic from other subnets to the appServices subnet. Note: adjust rules as needed after adding resources to the subnet.'
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '*'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'VirtualNetwork'
+          access: 'Deny'
+          priority: 1000
+          direction: 'Inbound'
+        }
+      }
       {
         name: 'AppPlan.Out.Allow.PrivateEndpoints'
         properties: {
@@ -288,16 +416,30 @@ resource appServiceSubnetNsg 'Microsoft.Network/networkSecurityGroups@2022-11-01
         }
       }
       {
-        name: 'AppPlan.Out.Allow.AzureMonitor'
+        name: 'AppPlan.Out.Allow.HTTPsInternet'
         properties: {
-          description: 'Allow outbound traffic from App service to the AzureMonitor ServiceTag.'
+          description: 'Allow outbound traffic from the app service subnet to the Internet over HTTPs.'
           protocol: '*'
           sourcePortRange: '*'
           destinationPortRange: '*'
           sourceAddressPrefix: appServicesSubnetPrefix
-          destinationAddressPrefix: 'AzureMonitor'
+          destinationAddressPrefix: 'Internet'
           access: 'Allow'
-          priority: 110
+          priority: 500
+          direction: 'Outbound'
+        }
+      }
+      {
+        name: 'DenyAllOutBound'
+        properties: {
+          description: 'Deny outbound traffic from the app services (vnet integration) subnet. Note: adjust rules as needed after adding resources to the subnet'
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '*'
+          sourceAddressPrefix: appServicesSubnetPrefix
+          destinationAddressPrefix: '*'
+          access: 'Deny'
+          priority: 1000
           direction: 'Outbound'
         }
       }
@@ -311,6 +453,76 @@ resource privateEndpointsSubnetNsg 'Microsoft.Network/networkSecurityGroups@2022
   location: location
   properties: {
     securityRules: [
+      {
+        name: 'PrivateEndpoints.In.Allow.AppGateway'
+        properties: {
+          description: 'Allow inbound from the Application Gateway Subnet'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: appServicesSubnetPrefix
+          destinationAddressPrefix: 'VirtualNetwork'
+          access: 'Allow'
+          priority: 100
+          direction: 'Inbound'
+        }
+      }
+      {
+        name: 'PrivateEndpoints.In.Allow.Jumpbox'
+        properties: {
+          description: 'Allow inbound from the jumpbox Subnet'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: jumpboxSubnetPrefix
+          destinationAddressPrefix: 'VirtualNetwork'
+          access: 'Allow'
+          priority: 110
+          direction: 'Inbound'
+        }
+      }
+      {
+        name: 'PrivateEndpoints.In.Allow.AppServicesPlan'
+        properties: {
+          description: 'Allow inbound from the App Services Plan Integration subnet'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: appServicesSubnetPrefix
+          destinationAddressPrefix: 'VirtualNetwork'
+          access: 'Allow'
+          priority: 120
+          direction: 'Inbound'
+        }
+      }
+      {
+        name: 'PrivateEndpoints.In.Allow.AzureFirewall'
+        properties: {
+          description: 'Allow inbound from the AzureFirewallSubnet'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: azureFirewallSubnetPrefix
+          destinationAddressPrefix: 'VirtualNetwork'
+          access: 'Allow'
+          priority: 130
+          direction: 'Inbound'
+        }
+      }
+      {
+        name: 'DenyVnetInBound'
+        properties: {
+          description: 'Deny inbound traffic from other subnets to the appServices subnet. Note: adjust rules as needed after adding resources to the subnet.'
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '*'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'VirtualNetwork'
+          access: 'Deny'
+          priority: 1000
+          direction: 'Inbound'
+        }
+      }
       {
         name: 'DenyAllOutBound'
         properties: {
@@ -336,6 +548,20 @@ resource agentsSubnetNsg 'Microsoft.Network/networkSecurityGroups@2022-11-01' = 
   properties: {
     securityRules: [
       {
+        name: 'DenyVnetInBound'
+        properties: {
+          description: 'Deny inbound traffic from other subnets to the agents subnet. Note: adjust rules as needed after adding resources to the subnet.'
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '*'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'VirtualNetwork'
+          access: 'Deny'
+          priority: 1000
+          direction: 'Inbound'
+        }
+      }
+      {
         name: 'DenyAllOutBound'
         properties: {
           description: 'Deny outbound traffic from the build agents subnet. Note: adjust rules as needed after adding resources to the subnet'
@@ -360,6 +586,20 @@ resource trainingSubnetNsg 'Microsoft.Network/networkSecurityGroups@2022-11-01' 
   properties: {
     securityRules: [
       {
+        name: 'DenyVnetInBound'
+        properties: {
+          description: 'Deny inbound traffic from other subnets to the training subnet. Note: adjust rules as needed after adding resources to the subnet.'
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '*'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'VirtualNetwork'
+          access: 'Deny'
+          priority: 1000
+          direction: 'Inbound'
+        }
+      }
+      {
         name: 'DenyAllOutBound'
         properties: {
           description: 'Deny outbound traffic from the training subnet. Note: adjust rules as needed after adding resources to the subnet'
@@ -383,6 +623,20 @@ resource scoringSubnetNsg 'Microsoft.Network/networkSecurityGroups@2022-11-01' =
   location: location
   properties: {
     securityRules: [
+      {
+        name: 'DenyVnetInBound'
+        properties: {
+          description: 'Deny inbound traffic from other subnets to the scoring subnet. Note: adjust rules as needed after adding resources to the subnet.'
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '*'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'VirtualNetwork'
+          access: 'Deny'
+          priority: 1000
+          direction: 'Inbound'
+        }
+      }
       {
         name: 'DenyAllOutBound'
         properties: {
@@ -599,6 +853,20 @@ resource jumpboxSubnetNsg 'Microsoft.Network/networkSecurityGroups@2022-11-01' =
         }
       }
       {
+        name: 'DenyVnetInBound'
+        properties: {
+          description: 'Deny inbound traffic from other subnets to the scoring subnet. Note: adjust rules as needed after adding resources to the subnet.'
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '*'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'VirtualNetwork'
+          access: 'Deny'
+          priority: 1000
+          direction: 'Inbound'
+        }
+      }
+      {
         name: 'Jumpbox.Out.Allow.PrivateEndpoints'
         properties: {
           description: 'Allow outbound traffic from the jumpbox subnet to the Private Endpoints subnet.'
@@ -613,16 +881,30 @@ resource jumpboxSubnetNsg 'Microsoft.Network/networkSecurityGroups@2022-11-01' =
         }
       }
       {
-        name: 'Jumpbox.Out.Allow.Internet'
+        name: 'Jumpbox.Out.Allow.HTTPInternet'
         properties: {
-          description: 'Allow outbound traffic from all VMs to Internet'
+          description: 'Allow outbound traffic from the jumpbox subnet to the Internet over HTTP.'
           protocol: '*'
           sourcePortRange: '*'
-          destinationPortRange: '*'
+          destinationPortRange: '80'
           sourceAddressPrefix: jumpboxSubnetPrefix
           destinationAddressPrefix: 'Internet'
           access: 'Allow'
-          priority: 130
+          priority: 490
+          direction: 'Outbound'
+        }
+      }
+      {
+        name: 'Jumpbox.Out.Allow.HTTPsInternet'
+        properties: {
+          description: 'Allow outbound traffic from the jumpbox subnet to the Internet over HTTPs.'
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: jumpboxSubnetPrefix
+          destinationAddressPrefix: 'Internet'
+          access: 'Allow'
+          priority: 500
           direction: 'Outbound'
         }
       }

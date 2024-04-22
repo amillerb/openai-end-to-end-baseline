@@ -51,7 +51,7 @@ module ipGroupAppGWSnet 'br/public:avm/res/network/ip-group:0.1.0' = {
   name: ipGroupAppGWSnetDeploymentName
   params: {
     name: ipGroupAppGWSnetName
-    ipAddresses: [ '10.1.1.0/24']
+    ipAddresses: [ '10.0.1.0/24']
     location: location
   }
 }
@@ -60,7 +60,7 @@ module ipGroupInboundFESnet 'br/public:avm/res/network/ip-group:0.1.0' = {
   name: ipGroupInboundFESnetDeploymentName
   params: {
     name: ipGroupInboundFESnetName
-    ipAddresses: ['10.1.0.128/32']
+    ipAddresses: ['10.0.2.14/32']
     location: location
   }
 }
@@ -69,7 +69,7 @@ module ipGroupOutboundFESnet 'br/public:avm/res/network/ip-group:0.1.0' = {
   name: ipGroupOutboundFESnetDeploymentName
   params: {
     name: ipGroupOutboundFESnetName
-    ipAddresses: ['10.1.0.0/24']
+    ipAddresses: ['10.0.0.0/24']
     location: location
   }
 }
@@ -78,7 +78,7 @@ module ipGroupBackend 'br/public:avm/res/network/ip-group:0.1.0' = {
   name: ipGroupBackendDeploymentName
   params: {
     name: ipGroupBackendName
-    ipAddresses: ['10.1.1.7/32', '10.1.1.5/32' ]
+    ipAddresses: ['10.0.2.7/32', '10.0.2.5/32' ]
     location: location
   }
 }
@@ -87,7 +87,7 @@ module ipGroupJumpBox 'br/public:avm/res/network/ip-group:0.1.0' = {
   name: ipGroupJumpBoxDeploymentName
   params: {
     name: ipGroupJumpBoxName
-    ipAddresses: ['10.1.1.192/28']
+    ipAddresses: ['10.0.2.128/28']
     location: location
   }
 }

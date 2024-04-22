@@ -191,3 +191,31 @@ module webappModule 'webapp.bicep' = {
     acrModule
   ]
 }
+
+// Deploy Hub VNet
+
+module hubNetworkModule 'hubnetwork.bicep' = {
+  name: 'hubVnetDeploy'
+}
+
+// Deploy Azure Firewall
+
+module firewallModule 'azurefirewall.bicep' = {
+  name: 'firewallDeploy'
+  params: {
+    location: location
+    logAnalyticsWorkspaceName: logWorkspace.name
+  }
+}
+
+
+// Deploy Routes for the Azure Firewall
+
+module routesModule 'routes.bicep' = {
+  name: 'routesDeploy'
+  params: {
+    location: location
+    azfwIP: firewallModule.outputs.azfwPIPAddress
+    fwPrivateIP: firewallModule.outputs.fwPrivateIP
+  }
+}

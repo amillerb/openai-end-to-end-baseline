@@ -260,6 +260,13 @@ module azfwPIP 'br/public:avm/res/network/public-ip-address:0.3.1' = {
   params: {
     name: azfwPIPName
     location: location
+    skuName: 'Standard'
+    skuTier: 'Regional'
+    zones: [
+      1
+      2
+      3
+    ]
   }
 }
 
@@ -274,7 +281,7 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:0.2.0' = {
       location: location
       publicIPResourceID: azfwPIP.outputs.resourceId
       firewallPolicyId: firewallPolicy.outputs.resourceId
-      virtualNetworkResourceId: resourceId('Microsoft.Network/virtualNetworks/subnets', 'vnet-hub', 'AzureFirewallSubnet')
+      virtualNetworkResourceId: resourceId('Microsoft.Network/virtualNetworks', 'vnet-hub')
       diagnosticSettings: [
         {
           name: 'azfw-diagnosticSettings'

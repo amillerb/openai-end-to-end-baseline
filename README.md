@@ -268,8 +268,8 @@ Before we are able to validate the web app, we must ensure that our web app inst
    4. Update the root store for the web app instances via a [startup command](/azure/app-service/configure-common?tabs=portal#configure-general-settings).
 
       ```bash
-     openssl x509 -inform der -in /var/ssl/certs/<certificate-thumbprint>.der -outform pem -out /usr/local/share/ca-certificates/fw-cert.crt && update-ca-certificates; cd /home/site/wwwroot; dotnet chatui.dll
-     ```
+       openssl x509 -inform der -in /var/ssl/certs/<certificate-thumbprint>.der -outform pem -out /usr/local/share/ca-certificates/fw-cert.crt && update-ca-certificates; cd /home/site/wwwroot; dotnet chatui.dll
+      ```
 
 ### Validate the web app
 

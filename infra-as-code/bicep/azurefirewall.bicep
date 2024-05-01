@@ -18,6 +18,7 @@ var ipGroupBackendDeploymentName = 'ipgr-backend-app-aoaizt-deployment'
 var ipGroupJumpBoxDeploymentName = 'ipgr-snet-jumpbox-deployment'
 var azfwPolicyDeploymentName = 'azfw-hub-policy-deployment'
 var azfwPIPDeploymentName = 'azfw-pip-deployment'
+var azfwDeploymentName = 'azfw-hub-deployment'
 
 // Name of the IP Groups
 var ipGroupAppGWSnetName = 'ipgr-snet-appGateway'
@@ -274,9 +275,9 @@ output azfwPIPAddress string = azfwPIP.outputs.ipAddress
 
 // Azure Firewall
 module azureFirewall 'br/public:avm/res/network/azure-firewall:0.2.0' = {
-    name: azfwName
+    name: azfwDeploymentName
     params: {
-      name: 'azfwConfig'
+      name: azfwName
       azureSkuTier: 'Premium'
       location: location
       publicIPResourceID: azfwPIP.outputs.resourceId
@@ -289,13 +290,11 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:0.2.0' = {
           metricCategories: [
             {
               category: 'AllMetrics'
-              enabled: true
             }
           ]
           logCategoriesAndGroups:[
             {
-              category: 'allLogs'
-              enabled: true
+              categoryGroup: 'allLogs'
             }
           ]
         }

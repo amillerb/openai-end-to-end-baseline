@@ -69,14 +69,14 @@ The following steps are required to deploy the infrastructure from the command l
 
 1. In your bash shell (or VSCode session) with Azure CLI and Bicep installed, navigate to the root directory of this repository (AppServicesRI)
 
-1. Login and set subscription
+2. Login and set subscription
 
 ```bash
 az login
 az account set --subscription xxxxx
 ```
 
-1. Obtain the App gateway certificate
+3. Obtain the App gateway certificate
    Azure Application Gateway support for secure TLS using Azure Key Vault and managed identities for Azure resources. This configuration enables end-to-end encryption of the network traffic using standard TLS protocols. For production systems, you should use a publicly signed certificate backed by a public root certificate authority (CA). Here, we will use a self-signed certificate for demonstrational purposes.
 
    - Set a variable for the domain used in the rest of this deployment.
@@ -105,7 +105,7 @@ az account set --subscription xxxxx
      echo APP_GATEWAY_LISTENER_CERTIFICATE_APPSERV_BASELINE: $APP_GATEWAY_LISTENER_CERTIFICATE_APPSERV_BASELINE
      ```
 
-1. Update the infra-as-code/parameters file
+4. Update the infra-as-code/parameters file
 
 ```json
 {
@@ -125,7 +125,7 @@ az account set --subscription xxxxx
 }
 ```
 
-1. Run the following command to create a resource group and deploy the infrastructure. Make sure:
+5. Run the following command to create a resource group and deploy the infrastructure. Make sure:
 
    - The location you choose [supports availability zones](https://learn.microsoft.com/azure/reliability/availability-zones-service-support)
    - The BASE_NAME contains only lowercase letters and is between 6 and 8 characters. Most resource names will include this text.
@@ -145,12 +145,15 @@ az deployment group create -f ./infra-as-code/bicep/main.bicep \
   -p @./infra-as-code/bicep/parameters.json \
   -p baseName=$BASE_NAME
 ```
+6. Navigate to the Azure Firewall and [enable TLS Inspection](/azure/firewall/premium-certificates#certificate-auto-generation) using the auto-generation mechanism for the Managed Identity, Key Vault and Self-signed Root CA certificate.
+
+7. Since we are using self-signed certificates for the Azure Firewall's TLS inspection feature, and traffic from the Application Gateway to the app front-end is flowing through the Azure Firewall, we must upload this Self-signed Root CA certificate (.CER format) to the [backend setting of the Application Gateway](/azure/application-gateway/end-to-end-ssl-portal#add-authenticationroot-certificates-of-backend-servers). You can obtain the Self-signed Root CA certificate from the Azure Firewall's auto-generated Key Vault via an [Export](/azure/key-vault/certificates/how-to-export-certificate?tabs=azure-portal#export-stored-certificates).
 
 ### Create, test, and deploy a Prompt flow
 
 1. Connect to the virtual network via Azure Bastion and the jump box (deployed as part of this solution) or through a force-tunneled VPN or virtual network peering that you manually configure.
 
-1. Open the [Machine Learning Workspace](https://ml.azure.com/) and choose your workspace. Ensure you have [enabled Prompt flow in your Azure Machine Learning workspace](https://learn.microsoft.com/azure/machine-learning/prompt-flow/get-started-prompt-flow?view=azureml-api-2#prerequisites-enable-prompt-flow-in-your-azure-machine-learning-workspace).
+1. Open the [Machine Learning Workspace](https://ml.azure.com/) and choose your workspace. Ensure you have [enabled Prompt flow in your Azure Machine Learning workspace](https://learn.microsoft.com/azure/machine-learning/prompt-flow/get-started-prompt-flow?view=azureml-api-2#prerequisites-enable-prompt-flow-in-your-azure-machine-learning-workspace). 
 
 1. Create a prompt flow connection to your gpt35 Azure OpenAI deployment. This will be used by the prompt flow you clone in the next step.
     1. Click on 'Prompt flow' in the left navigation in Machine Learning Studio
@@ -255,6 +258,7 @@ az storage blob upload -f ./website/chatui.zip \
 
 az webapp restart --name $NAME_OF_WEB_APP --resource-group $RESOURCE_GROUP
 ```
+<TODO> 
 
 ### Validate the web app
 

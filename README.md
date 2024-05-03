@@ -109,32 +109,12 @@ az account set --subscription xxxxx
      echo APP_GATEWAY_LISTENER_CERTIFICATE_APPSERV_BASELINE: $APP_GATEWAY_LISTENER_CERTIFICATE_APPSERV_BASELINE
      ```
 
-4. Update the infra-as-code/parameters file
+4. Run the following command to create a resource group and deploy the infrastructure. Make sure:
 
-```json
-{
-  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {
-    "baseName": {
-      "value": ""
-    },
-    "developmentEnvironment": {
-      "value": true
-    },
-    "appGatewayListenerCertificate": {
-      "value": "[base64 cert data from $APP_GATEWAY_LISTENER_CERTIFICATE_APPSERV_BASELINE]"
-    }
-  }
-}
-```
-
-5. Run the following command to create a resource group and deploy the infrastructure. Make sure:
-
-   - The location you choose [supports availability zones](https://learn.microsoft.com/azure/reliability/availability-zones-service-support)
+   - The location you choose [supports availability zones](/azure/reliability/availability-zones-service-support)
    - The BASE_NAME contains only lowercase letters and is between 6 and 8 characters. Most resource names will include this text.
    - You choose a valid resource group name.
-   - You will be prompted for an admin password for the jump box; it must satisfy the [complexity requirements for Windows](https://learn.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/password-must-meet-complexity-requirements).
+   - You will be prompted for the base 64 cert data from $APP_GATEWAY_LISTENER_CERTIFICATE_APPSERV_BASELINE and the admin password for the jump box; it must satisfy the [complexity requirements for Windows](https://learn.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/password-must-meet-complexity-requirements).
 
 ```bash
 LOCATION=eastus
@@ -146,10 +126,11 @@ az group create -l $LOCATION -n $RESOURCE_GROUP
 # This takes about 30 minutes to run.
 az deployment group create -f ./infra-as-code/bicep/main.bicep \
   -g $RESOURCE_GROUP \
-  -p @./infra-as-code/bicep/parameters.json \
   -p baseName=$BASE_NAME
 ```
-6. Navigate to the Azure Firewall and [enable TLS Inspection](/azure/firewall/premium-certificates#certificate-auto-generation) using the auto-generation mechanism for the Managed Identity, Key Vault and Self-signed Root CA certificate.
+5. Navigate to the Azure Firewall and [enable TLS Inspection](/azure/firewall/premium-certificates#certificate-auto-generation) using the auto-generation mechanism for the Managed Identity, Key Vault and Self-signed Root CA certificate.
+
+6. [Enable Private Endpoints](/azure/key-vault/general/private-link-service?tabs=portal#prerequisites) for the auto-generated Azure Firewall Key Vault. Make sure to select the SharedPrivateEndpoint subnet and [disable Public Access](/azure/key-vault/general/how-to-azure-key-vault-network-security?tabs=azure-portal).
 
 7. Since we are using self-signed certificates for the Azure Firewall's TLS inspection feature, and traffic from the Application Gateway to the app front-end is flowing through the Azure Firewall, we must upload this Self-signed Root CA certificate (Base-64 encoded .CER format) to the [backend setting of the Application Gateway](/azure/application-gateway/end-to-end-ssl-portal#add-authenticationroot-certificates-of-backend-servers). You can obtain the Self-signed Root CA certificate from the Azure Firewall's auto-generated Key Vault via an [Export](/azure/key-vault/certificates/how-to-export-certificate?tabs=azure-portal#export-stored-certificates).
    

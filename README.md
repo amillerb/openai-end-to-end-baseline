@@ -58,8 +58,12 @@ The following are prerequisites.
 
 - Ensure you have an [Azure Account](https://azure.microsoft.com/free/)
 - The deployment must be started by a user who has sufficient permissions to assign [roles](https://learn.microsoft.com/azure/role-based-access-control/built-in-roles), such as a User Access Administrator or Owner.
-- Ensure you have the [Azure CLI installed](https://learn.microsoft.com/cli/azure/install-azure-cli)
-- Ensure you have the [az Bicep tools installed](https://learn.microsoft.com/azure/azure-resource-manager/bicep/install)
+- Deployment environment options:
+   - [CloudShell](/azure/cloud-shell/overview) (Recommended):
+      - Ensure you have the [latest version of Bicep](/azure/azure-resource-manager/bicep/install#azure-cli) installed
+   - Local Workstation:
+      - Ensure you have the [Azure CLI installed](https://learn.microsoft.com/cli/azure/install-azure-cli)
+      - Ensure you have the [az Bicep tools installed](https://learn.microsoft.com/azure/azure-resource-manager/bicep/install)
 
 Use the following to deploy the infrastructure.
 
@@ -148,7 +152,8 @@ az deployment group create -f ./infra-as-code/bicep/main.bicep \
 6. Navigate to the Azure Firewall and [enable TLS Inspection](/azure/firewall/premium-certificates#certificate-auto-generation) using the auto-generation mechanism for the Managed Identity, Key Vault and Self-signed Root CA certificate.
 
 7. Since we are using self-signed certificates for the Azure Firewall's TLS inspection feature, and traffic from the Application Gateway to the app front-end is flowing through the Azure Firewall, we must upload this Self-signed Root CA certificate (Base-64 encoded .CER format) to the [backend setting of the Application Gateway](/azure/application-gateway/end-to-end-ssl-portal#add-authenticationroot-certificates-of-backend-servers). You can obtain the Self-signed Root CA certificate from the Azure Firewall's auto-generated Key Vault via an [Export](/azure/key-vault/certificates/how-to-export-certificate?tabs=azure-portal#export-stored-certificates).
-   :bulb: This step would not be necessary when using certificates from a well-known Certificate Authority as the Application Gateway instances already trusts well-known CAs.
+   
+> :bulb: This step would not be necessary when using certificates from a well-known Certificate Authority as the Application Gateway instances already trusts well-known CAs.
    
 ### Create, test, and deploy a Prompt flow
 
@@ -260,7 +265,8 @@ az storage blob upload -f ./website/chatui.zip \
 az webapp restart --name $NAME_OF_WEB_APP --resource-group $RESOURCE_GROUP
 ```
 Before we are able to validate the web app, we must ensure that our web app instances are able to successfully reach internet endpoints through the Azure Firewall. Since we enabled TLS inspection in the Azure Firewall using Self-signed certificates, similar to the Application Gateway backend settings, we must install the Self-signed Root CA certificate in the web app instances
-   :bulb: This step would not be necessary when using certificates from a well-known Certificate Authority as the Web App instances already trusts well-known CAs.
+
+> :bulb: This step would not be necessary when using certificates from a well-known Certificate Authority as the Web App instances already trusts well-known CAs.
 
    1. First ensure the Self-signed Root CA certificate is in DER encoded .CER format
    2. [Load the Public key certificate in the web app](/azure/app-service/configure-ssl-certificate?tabs=apex#upload-a-public-certificate)

@@ -23,7 +23,8 @@ param privateEndpointsSubnetName string
 param logWorkspaceName string
 
 //variables
-var keyVaultName = 'kv-${baseName}'
+// var keyVaultName = 'kv-${baseName}-'
+param keyVaultName string = 'kv-${baseName}-${uniqueString(resourceGroup().id)}'
 var keyVaultPrivateEndpointName = 'pep-${keyVaultName}'
 var keyVaultDnsGroupName = '${keyVaultPrivateEndpointName}/default'
 var keyVaultDnsZoneName = 'privatelink.vaultcore.azure.net' //Cannot use 'privatelink${environment().suffixes.keyvaultDns}', per https://github.com/Azure/bicep/issues/9708

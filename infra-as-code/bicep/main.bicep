@@ -196,6 +196,9 @@ module webappModule 'webapp.bicep' = {
 
 module hubNetworkModule 'hubnetwork.bicep' = {
   name: 'hubVnetDeploy'
+  params: {
+    location: location
+  }
 }
 
 // Deploy Azure Firewall

@@ -32,6 +32,7 @@ module rtSharedPE 'br/public:avm/res/network/route-table:0.2.1' = {
     ]
   }
 }
+output rtId string = rtSharedPE.outputs.resourceId
 
 module hubvnet 'br/public:network/virtual-network:1.1.3' = {
   name: vnetDeploymentName
@@ -60,7 +61,7 @@ output vnetId string = hubvnet.outputs.resourceId
 
 
 // NSGs
-module nsgSharedPrivateEndpoint 'br/public:avm/res/network/network-security-group:0.1.3' = {
+module nsgSharedPrivateEndpoint 'br/public:avm/res/network/network-security-group:0.1.2' = {
   name: nsgDeploymentName
   params: {
     name: nsgSharedPrivateEndpointsName

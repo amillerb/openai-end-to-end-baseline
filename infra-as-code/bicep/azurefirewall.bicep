@@ -14,7 +14,6 @@ var jumpboxRulesName = 'jumpbox-aoaizt-to-Internet'
 var ipGroupAppGWSnetDeploymentName = 'ipgr-snet-appGateway-deployment'
 var ipGroupInboundFESnetDeploymentName = 'ipgr-ib-frontend-app-aoaizt-deployment'
 var ipGroupOutboundFESnetDeploymentName = 'ipgr-ob-frontend-app-aoaizt-deployment'
-var ipGroupBackendDeploymentName = 'ipgr-backend-app-aoaizt-deployment'
 var ipGroupJumpBoxDeploymentName = 'ipgr-snet-jumpbox-deployment'
 var azfwPolicyDeploymentName = 'azfw-hub-policy-deployment'
 var azfwPIPDeploymentName = 'azfw-pip-deployment'
@@ -24,7 +23,6 @@ var azfwDeploymentName = 'azfw-hub-deployment'
 var ipGroupAppGWSnetName = 'ipgr-snet-appGateway'
 var ipGroupInboundFESnetName = 'ipgr-ib-frontend-app-aoaizt'
 var ipGroupOutboundFESnetName = 'ipgr-ob-frontend-app-aoaizt'
-var ipGroupBackendName = 'ipgr-backend-app-aoaizt'
 var ipGroupJumpBoxName = 'ipgr-snet-jumpbox'
 
 // Rule Collections
@@ -75,15 +73,6 @@ module ipGroupOutboundFESnet 'br/public:avm/res/network/ip-group:0.1.0' = {
   }
 }
 
-module ipGroupBackend 'br/public:avm/res/network/ip-group:0.1.0' = {
-  name: ipGroupBackendDeploymentName
-  params: {
-    name: ipGroupBackendName
-    ipAddresses: ['10.0.2.7/32', '10.0.2.5/32' ]
-    location: location
-  }
-}
-
 module ipGroupJumpBox 'br/public:avm/res/network/ip-group:0.1.0' = {
   name: ipGroupJumpBoxDeploymentName
   params: {
@@ -92,8 +81,6 @@ module ipGroupJumpBox 'br/public:avm/res/network/ip-group:0.1.0' = {
     location: location
   }
 }
-
-
 
 // Firewall Policy
 module firewallPolicy 'br/public:avm/res/network/firewall-policy:0.1.2' = {
